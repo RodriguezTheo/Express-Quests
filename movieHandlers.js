@@ -49,6 +49,22 @@ const updateMovie = (req, res) => {
   })
 };
 
+const deleteMovie = (req, res) => {
+  const id = parseInt(req.params.id);
+  database.query("delete from movies where id = ?", [id])
+  .then(([result]) => {
+    if(result.affectedRows === 0) {
+      res.status(404).send("Not Found");
+    }else{
+      res.sendStatus(204);
+    }
+  })
+  .catch((err) => {
+    console.error(err);
+    res.status(500).send("Error deleting the movie");
+  })
+};
+
 const postMovie = (req, res) => {
   const { title, director, year, color, duration } = req.body;
   database.query(`INSERT INTO movies (title, director, year, color, duration) VALUES (?,?,?,?,?)`, [title, director, year, color, duration])
@@ -64,6 +80,7 @@ const postMovie = (req, res) => {
 module.exports = {
   getMovies,
   getMovieById,
+  deleteMovie,
   postMovie,
   updateMovie,
 };
