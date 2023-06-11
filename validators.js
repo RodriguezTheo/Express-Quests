@@ -21,6 +21,7 @@ const validateUser = [
   body("email").isEmail(),
   body("firstname").isLength({ max: 255 }).isString(),
   body("lastname").isLength({ max: 255 }).isString(),
+  body("password").isLength({ max: 255 }).isString(),
   (req, res, next) => {
     const errors = validationResult(req);
 

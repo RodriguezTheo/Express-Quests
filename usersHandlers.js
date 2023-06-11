@@ -25,7 +25,11 @@ const getUsers = (req, res) => {
     where.map(({value}) => value)
   )
   .then(([result]) => {
-    res.json(result)
+    const users = result.map((user) => {
+      const { hashedPassword, ...otherProperties } = user;
+      return otherProperties;
+    })
+    res.json(users)
   })
   .catch((err) => {
     console.error(err);
@@ -40,7 +44,8 @@ const getUsersById = (req, res) => {
     .query("select * from users where id = ?", [id])
     .then(([users]) => {
       if (users[0] != null) {
-        res.json(users[0]);
+        const { hashedPassword, ...otherProperties } = users[0];
+        res.json(otherProperties);
       } else {
         res.status(404).send("Not Found");
       }
@@ -53,8 +58,8 @@ const getUsersById = (req, res) => {
 
 const updateUser = (req, res) => {
   const id = parseInt(req.params.id);
-  const {firstname, lastname, email, city, language} = req.body
-  database.query(`UPDATE users SET firstname = ?, lastname = ?, email = ?, city = ?, language = ? WHERE id = ?`, [firstname, lastname, email, city, language, id])
+  const {firstname, lastname, email, city, language, hashedPassword} = req.body
+  database.query(`UPDATE users SET firstname = ?, lastname = ?, email = ?, city = ?, language = ?, hashedPassword = ? WHERE id = ?`, [firstname, lastname, email, city, language,hashedPassword, id])
   .then(([result]) => {
     if(result.affectedRows === 0){
       res.status(404).send("Not Found");
@@ -85,8 +90,8 @@ const deleteUser = (req, res) => {
 };
 
 const postUser = (req, res) => {
-  const {firstname, lastname, email, city, language} = req.body
-  database.query(`INSERT INTO users (firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)`, [firstname, lastname, email, city, language])
+  const {firstname, lastname, email, city, language, hashedPassword} = req.body
+  database.query(`INSERT INTO users (firstname, lastname, email, city, language, hashedPassword) VALUES (?, ?, ?, ?, ?, ?)`, [firstname, lastname, email, city, language, hashedPassword])
   .then(([result]) => {
     res.location(`/api/users/${result.insertId}`).sendStatus(201);
   })
