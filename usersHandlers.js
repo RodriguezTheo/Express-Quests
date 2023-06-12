@@ -41,11 +41,10 @@ const getUsersById = (req, res) => {
   const id = parseInt(req.params.id);
 
   database
-    .query("select * from users where id = ?", [id])
+    .query("select id, firstname, lastname, email, city, language from users where id = ?", [id])
     .then(([users]) => {
       if (users[0] != null) {
-        const { hashedPassword, ...otherProperties } = users[0];
-        res.json(otherProperties);
+        res.json(users[0]);
       } else {
         res.status(404).send("Not Found");
       }
@@ -100,6 +99,8 @@ const postUser = (req, res) => {
     res.status(500).send("Error saving the user")
   })
 };
+
+
 
 module.exports = {
   getUsers,
