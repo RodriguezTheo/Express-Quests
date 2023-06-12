@@ -37,15 +37,14 @@ const getUsers = (req, res) => {
   });
 };
 
-const getUsersById = (req, res) => {
+const getUserById = (req, res) => {
   const id = parseInt(req.params.id);
 
   database
-    .query("select * from users where id = ?", [id])
+    .query("select id, firstname, lastname, email, city, language from users where id = ?", [id])
     .then(([users]) => {
       if (users[0] != null) {
-        const { hashedPassword, ...otherProperties } = users[0];
-        res.json(otherProperties);
+        res.json(users[0]);
       } else {
         res.status(404).send("Not Found");
       }
@@ -101,10 +100,31 @@ const postUser = (req, res) => {
   })
 };
 
+const getUserByEmailWithPasswordAndPassToNext = (req, res, next) => {
+  const { email } = req.body
+
+  database
+  .query("SELECT id ,email, hashedPassword FROM users WHERE email = ?", [email])
+  .then(([users]) => {
+    if (users[0] != null) {
+      console.log(req.user);
+      req.user = users[0];
+      next();
+    } else {
+      res.sendStatus(401);
+    }
+  })
+  .catch((err) => {
+    console.error(err);
+    res.status(500).send("Error retrieving data from database");
+  });
+};
+
 module.exports = {
   getUsers,
-  getUsersById,
+  getUserById,
   postUser,
   updateUser,
   deleteUser,
+  getUserByEmailWithPasswordAndPassToNext,
 };

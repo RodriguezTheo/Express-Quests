@@ -1,6 +1,6 @@
 const express = require("express");
 require("dotenv").config();
-const { hashPassword } = require("./auth.js");
+const { hashPassword, verifyPassword, verifyToken, verifyUserId } = require("./auth.js");
 const { validateMovie, validateUser } = require('./validators.js');
 
 const app = express();
@@ -17,19 +17,31 @@ app.get("/", welcome);
 const movieHandlers = require("./movieHandlers");
 const usersHandlers = require('./usersHandlers');
 
+// Public Routes
+// Movies
 app.get("/api/movies", movieHandlers.getMovies);
 app.get("/api/movies/:id", movieHandlers.getMovieById);
+// Users
 app.get("/api/users", usersHandlers.getUsers);
-app.get("/api/users/:id", usersHandlers.getUsersById);
+app.get("/api/users/:id", usersHandlers.getUserById);
 
-app.post('/api/movies', validateMovie, movieHandlers.postMovie);
-app.post('/api/users', validateUser, hashPassword, usersHandlers.postUser);
+app.post(
+  "/api/login",
+  usersHandlers.getUserByEmailWithPasswordAndPassToNext,
+  verifyPassword
+);
 
-app.put('/api/movies/:id', validateMovie, movieHandlers.updateMovie);
-app.put('/api/users/:id', hashPassword, usersHandlers.updateUser);
+// Auth Routes
+// Movies
+app.post('/api/movies',verifyToken, validateMovie, movieHandlers.postMovie);
+app.put('/api/movies/:id',verifyToken, validateMovie, movieHandlers.updateMovie);
+app.delete('/api/movies/:id',verifyToken, movieHandlers.deleteMovie);
+// Users
+app.post('/api/users',validateUser, hashPassword, usersHandlers.postUser);
+app.put('/api/users/:id',verifyToken, verifyUserId ,hashPassword, usersHandlers.updateUser);
+app.delete('/api/users/:id',verifyToken, verifyUserId, usersHandlers.deleteUser);
 
-app.delete('/api/movies/:id', movieHandlers.deleteMovie);
-app.delete('/api/users/:id', usersHandlers.deleteUser);
+
 
 app.listen(port, (err) => {
   if (err) {
